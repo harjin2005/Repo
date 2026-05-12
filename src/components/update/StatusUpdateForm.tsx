@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import type { Lead } from '@/lib/types'
 
 type Action = 'sold' | 'not_interested' | null
@@ -25,14 +24,8 @@ export default function StatusUpdateForm() {
     setAction(null)
     setDone(false)
 
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('leads')
-      .select('*')
-      .eq('phone', phone.trim())
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    const res = await fetch(`/api/leads/search?phone=${encodeURIComponent(phone.trim())}`)
+    const data = await res.json()
 
     if (!data) setNotFound(true)
     else setLead(data as Lead)

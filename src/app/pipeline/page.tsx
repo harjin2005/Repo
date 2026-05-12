@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import KanbanBoard from '@/components/pipeline/KanbanBoard'
 import AvailabilityManager from '@/components/pipeline/AvailabilityManager'
 import LogoutButton from '@/components/pipeline/LogoutButton'
@@ -7,7 +7,10 @@ import type { Lead } from '@/lib/types'
 export const dynamic = 'force-dynamic'
 
 export default async function PipelinePage() {
-  const supabase = await createClient()
+  const supabase = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
   const { data: leads } = await supabase
     .from('leads')
     .select('*')
