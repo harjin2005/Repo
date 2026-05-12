@@ -1,10 +1,31 @@
 'use client'
 import { InlineWidget, useCalendlyEventListener } from 'react-calendly'
+import { QUALIFIED_REVENUE_THRESHOLD } from '@/lib/constants'
 
-interface Props { email: string; name: string; onBooked: () => void }
+interface Props {
+  email: string
+  name: string
+  leadId: string | null
+  revenueRange: string
+  onBooked: () => void
+}
 
-export default function CalendlyEmbed({ email, name, onBooked }: Props) {
-  useCalendlyEventListener({ onEventScheduled: () => onBooked() })
+export default function CalendlyEmbed({ email, name, leadId, revenueRange, onBooked }: Props) {
+  useCalendlyEventListener({
+    onEventScheduled: async () => {
+      if (leadId) {
+        const newStage = revenueRange === QUALIFIED_REVENUE_THRESHOLD ? 'qualified' : 'appointment'
+        try {
+          await fetch(`/api/leads/${leadId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pipeline_stage: newStage }),
+          })
+        } catch {}
+      }
+      onBooked()
+    },
+  })
 
   return (
     <div className="fade-up">

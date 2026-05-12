@@ -14,6 +14,7 @@ const STEP_KEYS: Step[] = ['contact', 'employees', 'revenue', 'calendly']
 export default function LeadForm() {
   const [step, setStep] = useState<Step>('contact')
   const [formData, setFormData] = useState<Partial<CreateLeadInput>>({})
+  const [leadId, setLeadId] = useState<string | null>(null)
   const [booked, setBooked] = useState(false)
 
   const stepIdx = STEP_KEYS.indexOf(step)
@@ -32,11 +33,13 @@ export default function LeadForm() {
     const final = { ...formData, revenue_range } as CreateLeadInput
     setFormData(final)
     try {
-      await fetch('/api/leads', {
+      const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(final),
       })
+      const data = await res.json()
+      if (data.id) setLeadId(data.id)
     } catch {}
     setStep('calendly')
   }
@@ -74,6 +77,8 @@ export default function LeadForm() {
         <CalendlyEmbed
           email={formData.email!}
           name={`${formData.first_name} ${formData.last_name}`}
+          leadId={leadId}
+          revenueRange={formData.revenue_range ?? ''}
           onBooked={() => setBooked(true)}
         />
       )}
